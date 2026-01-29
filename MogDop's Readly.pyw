@@ -99,6 +99,7 @@ translations = {
         "back": "Назад",
         "retry": "Повторить",
         "failed_to_load": "Не удалось загрузить стихи. Проверьте соединение.",
+        "loading_poems": "Подождите, идет загрузка стихов",
         "author": "Автор",
         "date": "Дата",
         "poem_added": "Стих добавлен в stih.txt",
@@ -148,6 +149,7 @@ translations = {
         "back": "Back",
         "retry": "Retry",
         "failed_to_load": "Failed to load poems. Check your connection.",
+        "loading_poems": "Wait, poems are loading",
         "author": "Author",
         "date": "Date",
         "poem_added": "Poem added to stih.txt",
@@ -722,6 +724,83 @@ def fetch_stihi_ru_data():
         print(f"Ошибка загрузки стихов: {e}")  # Диагностика
         return None
 
+def fetch_poems_incremental(callback, error_callback, completion_callback=None):
+    """
+    Загружает стихи инкрементально, вызывая callback для каждого загруженного стиха.
+    callback(poem) - вызывается для каждого загруженного стиха
+    error_callback() - вызывается при ошибке
+    completion_callback() - вызывается после завершения загрузки всех стихов
+    """
+    try:
+        url = "https://stihi.ru"
+        headers = {'User-Agent': 'Mozilla/5.0'}
+        response = requests.get(url, headers=headers, timeout=10)
+        print(f"Запрос главной страницы: статус {response.status_code}")  # Диагностика
+        if response.status_code != 200:
+            root.after(0, error_callback)
+            return
+        soup = BeautifulSoup(response.text, 'html.parser')
+        poem_links = soup.select('.poemlink')
+        print(f"Найдено стихов: {len(poem_links)}")  # Диагностика
+        
+        if not poem_links:
+            root.after(0, error_callback)
+            return
+        
+        for link in poem_links:
+            try:
+                title = link.text.strip()
+                poem_url = "https://stihi.ru" + link['href']
+                poem_response = requests.get(poem_url, headers=headers, timeout=10)
+                print(f"Запрос стиха {title}: статус {poem_response.status_code}")  # Диагностика
+                poem_soup = BeautifulSoup(poem_response.text, 'html.parser')
+                
+                # Извлечение текста стиха
+                poem_text_elem = poem_soup.select_one('div.text')
+                poem_text = poem_text_elem.text.strip() if poem_text_elem else "Текст не найден"
+                
+                # Извлечение автора
+                author_elem = poem_soup.select_one('.poetauthor')
+                if author_elem:
+                    author = author_elem.text.strip()
+                    print(f"Автор найден через .poetauthor: {author}")  # Диагностика
+                else:
+                    author_link = poem_soup.select_one('a[href^="/avtor/"]')
+                    if author_link:
+                        author = author_link.text.strip()
+                        print(f"Автор найден через ссылку /avtor/: {author}")  # Диагностика
+                    else:
+                        title_elem = poem_soup.select_one('h1')
+                        if title_elem:
+                            next_elem = title_elem.find_next()
+                            if next_elem and next_elem.name in ['div', 'span', 'a']:
+                                author = next_elem.text.strip()
+                                print(f"Автор найден после заголовка: {author}")  # Диагностика
+                            else:
+                                author = "Неизвестный автор"
+                                print("Автор не найден: использован запасной вариант 'Неизвестный автор'")  # Диагностика
+                        else:
+                            author = "Неизвестный автор"
+                            print("Заголовок не найден, автор установлен как 'Неизвестный автор'")  # Диагностика
+                
+                # Извлечение даты
+                date_elem = poem_soup.select_one('.date')
+                date = date_elem.text.strip() if date_elem else "Дата неизвестна"
+                
+                poem = {'title': title, 'text': poem_text, 'author': author, 'date': date}
+                # Вызываем callback через root.after() для обновления UI из главного потока
+                root.after(0, lambda p=poem: callback(p))
+            except Exception as e:
+                print(f"Ошибка загрузки стиха {title if 'title' in locals() else 'unknown'}: {e}")  # Диагностика
+                continue
+        
+        # Вызываем completion_callback после завершения загрузки всех стихов
+        if completion_callback:
+            root.after(0, completion_callback)
+    except Exception as e:
+        print(f"Ошибка загрузки стихов: {e}")  # Диагностика
+        root.after(0, error_callback)
+
 def open_poem_selector():
     # Сохраняем текущий интерфейс
     original_widgets = root.winfo_children()
@@ -737,6 +816,9 @@ def open_poem_selector():
     # Список стихов
     poem_left_frame = tk.Frame(poem_frame, bg=bg_color)
     poem_left_frame.grid(row=0, column=0, sticky="nsew", padx=10, pady=10)
+    # Метка загрузки
+    poem_loading_label = tk.Label(poem_left_frame, text="", font=("Courier New", 16), fg=text_color, bg=bg_color)
+    poem_loading_label.pack(pady=5)
     poem_listbox = tk.Listbox(poem_left_frame, width=50, height=25, font=("Courier New", 16))
     poem_listbox.pack(side="left", fill="y")
     poem_scrollbar = tk.Scrollbar(poem_left_frame, orient="vertical", command=poem_listbox.yview)
@@ -813,22 +895,44 @@ def open_poem_selector():
         poem_error_label.config(text="")
         retry_button.grid_remove()
         
-        def update_poem_list():
-            # Тестовые данные для проверки интерфейса
-            # Раскомментируйте для теста без интернета
-            # poems = [{'title': 'Тестовый стих', 'text': 'Это тестовый текст.', 'author': 'Тестовый автор', 'date': '2025-01-01'}]
-            poems = fetch_stihi_ru_data()
-            print(f"Получено стихов: {len(poems) if poems else 'None'}")  # Диагностика
-            if poems:
-                poem_frame.poems = poems
-                for poem in poems:
-                    poem_listbox.insert(tk.END, poem['title'])
+        # Показываем метку загрузки
+        poem_loading_label.config(text=translations[language]["loading_poems"])
+        
+        # Инициализируем список стихов
+        poem_frame.poems = []
+        poem_frame.loading_complete = False
+        
+        def add_poem_to_list(poem):
+            """Callback для добавления загруженного стиха в список"""
+            poem_frame.poems.append(poem)
+            poem_listbox.insert(tk.END, poem['title'])
+            # Если это первый стих, активируем кнопку добавления
+            if len(poem_frame.poems) == 1:
                 poem_add_button.config(state="normal")
-            else:
+        
+        def finish_loading():
+            """Вызывается когда загрузка завершена"""
+            poem_frame.loading_complete = True
+            poem_loading_label.config(text="")
+            print(f"Загрузка завершена. Всего стихов: {len(poem_frame.poems)}")
+        
+        def handle_error():
+            """Callback для обработки ошибок"""
+            poem_frame.loading_complete = True
+            poem_loading_label.config(text="")
+            if not poem_frame.poems:
                 poem_error_label.config(text=translations[language]["failed_to_load"])
                 retry_button.grid(row=0, column=3, padx=10)
         
-        threading.Thread(target=update_poem_list, daemon=True).start()
+        def load_poems_thread():
+            """Функция для фонового потока"""
+            try:
+                fetch_poems_incremental(add_poem_to_list, handle_error, finish_loading)
+            except Exception as e:
+                print(f"Ошибка в потоке загрузки: {e}")
+                root.after(0, handle_error)
+        
+        threading.Thread(target=load_poems_thread, daemon=True).start()
 
 # Конец выбора стихов
 
