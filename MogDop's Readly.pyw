@@ -803,25 +803,36 @@ def fetch_poems_incremental(callback, error_callback, completion_callback=None):
 
 def open_poem_selector():
     # Сохраняем текущий интерфейс
-    original_widgets = root.winfo_children()
-    for widget in original_widgets:
-        widget.grid_remove()  # Скрываем текущий интерфейс
+    original_widgets = []
+    for widget in root.winfo_children():
+        original_widgets.append(widget)
+        # Проверяем, что виджет использует grid менеджер перед вызовом grid_remove()
+        try:
+            widget.grid_info()  # Проверяем, используется ли grid
+            widget.grid_remove()  # Скрываем текущий интерфейс
+        except (AttributeError, tk.TclError):
+            # Если виджет не использует grid (например, Toplevel), просто пропускаем
+            pass
 
     # Создаём фрейм для нового интерфейса
     poem_frame = tk.Frame(root, bg=bg_color)
-    poem_frame.grid(row=0, column=0, sticky="nsew")
-    root.grid_rowconfigure(0, weight=1)
-    root.grid_columnconfigure(0, weight=1)
+    poem_frame.place(x=0, y=0, relwidth=1, relheight=1)  # Размещаем поверх всего интерфейса
+    root.update_idletasks()  # Принудительно обновляем интерфейс
 
     # Список стихов
     poem_left_frame = tk.Frame(poem_frame, bg=bg_color)
     poem_left_frame.grid(row=0, column=0, sticky="nsew", padx=10, pady=10)
+    poem_left_frame.grid_rowconfigure(1, weight=1)  # Настраиваем расширение для списка
+    poem_left_frame.grid_columnconfigure(0, weight=1)
     # Метка загрузки
     poem_loading_label = tk.Label(poem_left_frame, text="", font=("Courier New", 16), fg=text_color, bg=bg_color)
-    poem_loading_label.pack(pady=5)
-    poem_listbox = tk.Listbox(poem_left_frame, width=50, height=25, font=("Courier New", 16))
-    poem_listbox.pack(side="left", fill="y")
-    poem_scrollbar = tk.Scrollbar(poem_left_frame, orient="vertical", command=poem_listbox.yview)
+    poem_loading_label.grid(row=0, column=0, pady=5, sticky="ew")
+    # Фрейм для списка и скроллбара
+    listbox_frame = tk.Frame(poem_left_frame, bg=bg_color)
+    listbox_frame.grid(row=1, column=0, sticky="nsew")
+    poem_listbox = tk.Listbox(listbox_frame, width=50, font=("Courier New", 16))
+    poem_listbox.pack(side="left", fill="both", expand=True)
+    poem_scrollbar = tk.Scrollbar(listbox_frame, orient="vertical", command=poem_listbox.yview)
     poem_scrollbar.pack(side="right", fill="y")
     poem_listbox.config(yscrollcommand=poem_scrollbar.set)
 
@@ -968,9 +979,16 @@ def open_poem_selector():
                 messagebox.showerror(translations[language]["error"], f"Failed to add poem: {e}")
 
     def restore_main_interface(frame, original_widgets):
+        frame.place_forget()  # Убираем фрейм
         frame.destroy()
         for widget in original_widgets:
-            widget.grid()  # Восстанавливаем исходный интерфейс
+            # Восстанавливаем только те виджеты, которые используют grid
+            try:
+                widget.grid_info()  # Проверяем, использовался ли grid
+                widget.grid()  # Восстанавливаем исходный интерфейс
+            except (AttributeError, tk.TclError):
+                # Если виджет не использует grid, пропускаем
+                pass
 
     poem_listbox.bind("<<ListboxSelect>>", on_poem_select)
     load_poems()
@@ -1073,6 +1091,25 @@ abspath(__file__))
 
 def update_error_label():
     error_label.config(text=translations[language]["errors"].format(error_count))
+
+# Функция для создания tooltip
+def create_tooltip(widget, text):
+    def on_enter(event):
+        tooltip = tk.Toplevel()
+        tooltip.wm_overrideredirect(True)
+        tooltip.wm_geometry(f"+{event.x_root+10}+{event.y_root+10}")
+        label = tk.Label(tooltip, text=text, background="#ffffe0", relief="solid", borderwidth=1,
+                        font=("Courier New", 12), wraplength=400, justify="left")
+        label.pack()
+        widget.tooltip = tooltip
+    
+    def on_leave(event):
+        if hasattr(widget, 'tooltip'):
+            widget.tooltip.destroy()
+            del widget.tooltip
+    
+    widget.bind('<Enter>', on_enter)
+    widget.bind('<Leave>', on_leave)
 
 # Функция для предотвращения выделения текста
 def prevent_selection(event, text_widget):
@@ -1306,6 +1343,7 @@ poem_selector_button = tk.Button(settings_frame, image=poem_selector_button_img,
                                  command=open_poem_selector, fg=text_color, font=("Courier New", 24), borderwidth=0, bg=bg_color, activebackground=bg_color)
 poem_selector_button.image = poem_selector_button_img
 poem_selector_button.grid(row=9, column=0, pady=10, sticky="ew")
+create_tooltip(poem_selector_button, "Исследовать стихи в Бете. Пока что берутся лишь стихи с главной страницы stihi.ru, поиска нет. Там исключительно новые современные стихи.")
 
 MD_label = tk.Label(settings_frame, text=translations[language]["MD"], font=("Courier New", 13), bg=bg_color, fg=text_color)
 MD_label.grid(row=10, column=0, padx=10, pady=20, sticky="ew")
