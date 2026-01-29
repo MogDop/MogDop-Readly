@@ -103,7 +103,55 @@ translations = {
         "author": "Автор",
         "date": "Дата",
         "poem_added": "Стих добавлен в stih.txt",
-        "MD": "Автор: Глеб Лазарев, @MogDop или @mogdop9"
+        "MD": "Автор: Глеб Лазарев, @MogDop или @mogdop9",
+        "back_to_menu": "Назад в меню",
+        "help": "Помощь",
+        "help_title": "Справка по программе Ридли",
+        "help_text": """Ридли - это программа для тренировки памяти и навыков письма.
+
+ОСНОВНЫЕ РЕЖИМЫ:
+
+1. ГЛАВНАЯ - Основной режим работы:
+   • Сначала вы видите текст, который нужно переписать
+   • После правильного ввода текст скрывается
+   • Затем нужно ввести текст по памяти
+   • Программа проверяет правильность ввода
+
+2. ПО СТРОКАМ - Режим обучения построчно:
+   • Текст разбивается на отдельные строки
+   • Вы переписываете каждую строку
+   • После правильного ввода строка скрывается
+   • Затем нужно ввести строку по памяти
+   • После прохождения всех строк режим завершается
+
+3. ПО АБЗАЦАМ - Режим обучения по абзацам:
+   • Текст разбивается на абзацы (блоки)
+   • Вы переписываете каждый абзац
+   • После правильного ввода переходите к следующему
+   • После прохождения всех абзацев режим завершается
+
+ПАРАМЕТРЫ:
+
+• Учитывать размер букв - проверка учитывает регистр (заглавные/строчные)
+• Учитывать знаки препинания - проверка учитывает пунктуацию
+• Автоматически очищать поле - поле ввода очищается после ошибки
+• Размер шрифта - настройка размера текста
+• Тема оформления - выбор цветовой схемы (Светлая, Тёмная, Ретро)
+• Язык - переключение между русским и английским
+
+ДОПОЛНИТЕЛЬНЫЕ ФУНКЦИИ:
+
+• Открыть папку - открывает папку с программой
+• Исследовать стихи - загружает стихи с сайта stihi.ru
+• Счётчик ошибок - показывает количество ошибок в текущей сессии
+
+ТЕКСТ ДЛЯ ТРЕНИРОВКИ:
+
+Программа автоматически загружает текст из файла stih.txt в папке программы.
+Вы можете редактировать этот файл или использовать функцию "Исследовать стихи"
+для загрузки новых стихов с сайта stihi.ru.
+
+УДАЧИ В ТРЕНИРОВКЕ!"""
     },
     "English": {
         # Исходные ключи
@@ -153,7 +201,55 @@ translations = {
         "author": "Author",
         "date": "Date",
         "poem_added": "Poem added to stih.txt",
-        "MD": "Author: Gleb Lazarev, @MogDop or @mogdop9"
+        "MD": "Author: Gleb Lazarev, @MogDop or @mogdop9",
+        "back_to_menu": "Back to Menu",
+        "help": "Help",
+        "help_title": "Readly Program Help",
+        "help_text": """Readly is a program for training memory and writing skills.
+
+MAIN MODES:
+
+1. MAIN - Main working mode:
+   • First you see the text that needs to be copied
+   • After correct input, the text is hidden
+   • Then you need to enter the text from memory
+   • The program checks the correctness of input
+
+2. BY LINES - Line-by-line learning mode:
+   • Text is split into individual lines
+   • You copy each line
+   • After correct input, the line is hidden
+   • Then you need to enter the line from memory
+   • After completing all lines, the mode ends
+
+3. BY PARAGRAPHS - Paragraph-by-paragraph learning mode:
+   • Text is split into paragraphs (blocks)
+   • You copy each paragraph
+   • After correct input, move to the next one
+   • After completing all paragraphs, the mode ends
+
+SETTINGS:
+
+• Case Sensitive - check considers case (uppercase/lowercase)
+• Punctuation Sensitive - check considers punctuation
+• Auto Clear Field - input field clears after error
+• Text Font Size - text size setting
+• Theme - color scheme selection (Light, Dark, Retro)
+• Language - switch between Russian and English
+
+ADDITIONAL FEATURES:
+
+• Open Folder - opens the program folder
+• Explore Poems - loads poems from stihi.ru website
+• Error Counter - shows the number of errors in current session
+
+TRAINING TEXT:
+
+The program automatically loads text from stih.txt file in the program folder.
+You can edit this file or use the "Explore Poems" function
+to load new poems from stihi.ru website.
+
+GOOD LUCK WITH TRAINING!"""
     }
 }
 
@@ -556,7 +652,6 @@ def update_theme():
     root.config(bg=bg_color)
     settings_canvas.config(bg=bg_color)
     settings_frame.config(bg=bg_color)
-    title_label.config(bg=bg_color, fg=text_color)
     sample_text.config(bg=text_bg_color, fg=text_color)
     text_widget.config(bg=text_bg_color, fg=text_color)
     status_label.config(bg=bg_color, fg=text_color)
@@ -601,6 +696,24 @@ def update_language():
     status_label.config(text=translations[language]["status_main"])
     error_label.config(text=translations[language]["errors"].format(error_count))
     MD_label.config(text=translations[language]["MD"])
+    # Обновляем кнопки главного меню
+    if menu_frame:
+        menu_title_label.config(text=translations[language]["title"])
+        main_mode_button.config(text=translations[language]["tab_main"])
+        lines_mode_button.config(text=translations[language]["tab_lines"])
+        paragraphs_mode_button.config(text=translations[language]["tab_paragraphs"])
+        settings_mode_button.config(text=translations[language]["tab_settings"])
+        if 'help_mode_button' in globals():
+            help_mode_button.config(text=translations[language]["help"])
+    # Обновляем кнопки "Назад"
+    if 'back_main_button' in globals():
+        back_main_button.config(text=translations[language]["back_to_menu"])
+    if 'back_lines_button' in globals():
+        back_lines_button.config(text=translations[language]["back_to_menu"])
+    if 'back_quatrain_button' in globals():
+        back_quatrain_button.config(text=translations[language]["back_to_menu"])
+    if 'back_settings_button' in globals():
+        back_settings_button.config(text=translations[language]["back_to_menu"])
     if lines:
         line_status_label.config(text=translations[language]["status_lines"].format(current_line + 1, len(lines)))
     if quatrains:
@@ -997,7 +1110,7 @@ def open_poem_selector():
 
 def update_all_buttons():
 
-    global check_button, reset_button, line_check_button, line_reset_button, quatrain_check_button, quatrain_reset_button, open_folder_button, poem_selector_button
+    global check_button, reset_button, line_check_button, line_reset_button, quatrain_check_button, quatrain_reset_button, open_folder_button, poem_selector_button, help_mode_button
     for btn in [check_button, line_check_button, quatrain_check_button]:
         new_img = create_rounded_button_image(button_width, button_height, button_radius, button_color, bg_color)
         btn.config(image=new_img, fg=text_color)
@@ -1006,10 +1119,14 @@ def update_all_buttons():
         new_img = create_rounded_button_image(reset_button_width, button_height, button_radius, button_color, bg_color)
         btn.config(image=new_img, fg=text_color)
         btn.image = new_img
-    for btn in [open_folder_button, poem_selector_button,]:
+    for btn in [open_folder_button, poem_selector_button]:
         new_img = create_rounded_button_image(settings_button_width, button_height, button_radius, button_color, bg_color)
         btn.config(image=new_img, fg=text_color)
         btn.image = new_img
+    if 'help_mode_button' in globals():
+        new_img = create_rounded_button_image(settings_button_width, button_height, button_radius, button_color, bg_color)
+        help_mode_button.config(image=new_img, fg=text_color)
+        help_mode_button.image = new_img
 
 def switch_profile(profile):
     global current_profile
@@ -1092,6 +1209,68 @@ abspath(__file__))
 def update_error_label():
     error_label.config(text=translations[language]["errors"].format(error_count))
 
+def show_help():
+    """Показывает окно помощи с описанием программы"""
+    help_window = tk.Toplevel(root)
+    help_window.title(translations[language]["help_title"])
+    help_window.geometry("800x700")
+    help_window.transient(root)
+    help_window.config(bg=bg_color)
+    
+    # Заголовок
+    help_title_label = tk.Label(help_window, text=translations[language]["help_title"], 
+                               font=("Courier New", 24, "bold"), bg=bg_color, fg=text_color)
+    help_title_label.pack(pady=20)
+    
+    # Фрейм с прокруткой для текста помощи
+    help_canvas = tk.Canvas(help_window, bg=bg_color)
+    help_scrollbar = ttk.Scrollbar(help_window, orient="vertical", command=help_canvas.yview)
+    help_scrollable_frame = tk.Frame(help_canvas, bg=bg_color)
+    
+    help_scrollable_frame.bind(
+        "<Configure>",
+        lambda e: help_canvas.configure(scrollregion=help_canvas.bbox("all"))
+    )
+    
+    help_canvas.create_window((0, 0), window=help_scrollable_frame, anchor="nw")
+    help_canvas.configure(yscrollcommand=help_scrollbar.set)
+    
+    # Текст помощи
+    help_text_widget = tk.Text(help_scrollable_frame, wrap="word", width=70, height=30,
+                              font=("Courier New", 14), bg=text_bg_color, fg=text_color,
+                              padx=20, pady=20, state="disabled", exportselection=0)
+    help_text_widget.pack(fill="both", expand=True)
+    
+    # Вставляем текст помощи
+    help_text_widget.config(state="normal")
+    help_text_widget.insert("1.0", translations[language]["help_text"])
+    help_text_widget.config(state="disabled")
+    
+    # Привязка событий для предотвращения выделения
+    help_text_widget.bind("<Button-1>", lambda e: prevent_selection(e, help_text_widget))
+    help_text_widget.bind("<B1-Motion>", lambda e: prevent_selection(e, help_text_widget))
+    help_text_widget.bind("<Control-a>", lambda e: prevent_selection(e, help_text_widget))
+    
+    # Кнопка закрытия
+    close_button_img = create_rounded_button_image(button_width, button_height, button_radius, button_color, bg_color)
+    close_button = tk.Button(help_window, image=close_button_img, text=translations[language]["back"], 
+                            compound="center", command=help_window.destroy,
+                            fg=text_color, font=("Courier New", 18), borderwidth=0, 
+                            bg=bg_color, activebackground=bg_color)
+    close_button.image = close_button_img
+    close_button.pack(pady=20)
+    
+    help_canvas.pack(side="left", fill="both", expand=True, padx=20, pady=10)
+    help_scrollbar.pack(side="right", fill="y")
+    
+    # Привязка прокрутки колесиком мыши
+    help_canvas.bind("<MouseWheel>", lambda e: on_mouse_wheel(e, help_canvas))
+    
+    # Обновление размеров при изменении окна
+    def configure_help_scroll(event):
+        help_canvas.configure(scrollregion=help_canvas.bbox("all"))
+    help_scrollable_frame.bind("<Configure>", configure_help_scroll)
+
 # Функция для создания tooltip
 def create_tooltip(widget, text):
     def on_enter(event):
@@ -1116,20 +1295,83 @@ def prevent_selection(event, text_widget):
     text_widget.tag_remove(tk.SEL, "1.0", tk.END)  # Удаляем любое выделение
     return "break"  # Прерываем дальнейшую обработку события
 
-# Интерфейс
-title_label = tk.Label(root, text=translations[language]["title"], font=("Courier New", 40), bg=bg_color, fg=text_color)
-title_label.grid(row=0, column=0, padx=20, pady=20, sticky="n")
-title_label.bind("<Button-1>", lambda e: play_click_sound())
+# Глобальные переменные для навигации
+current_mode = None  # Текущий активный режим
+menu_frame = None  # Фрейм главного меню
 
+# Функции навигации
+def show_main_menu():
+    """Показывает главное меню и скрывает текущий режим"""
+    global current_mode, menu_frame
+    
+    # Скрываем текущий режим (notebook)
+    if notebook.winfo_viewable():
+        try:
+            notebook.grid_info()
+            notebook.grid_remove()
+        except (AttributeError, tk.TclError):
+            pass
+    
+    # Показываем главное меню
+    if menu_frame:
+        try:
+            menu_frame.grid_info()
+            menu_frame.grid()
+        except (AttributeError, tk.TclError):
+            menu_frame.grid(row=0, column=0, sticky="nsew")
+    
+    current_mode = None
+
+def show_mode(mode):
+    """Показывает выбранный режим и скрывает меню"""
+    global current_mode
+    
+    # Скрываем главное меню
+    if menu_frame:
+        try:
+            menu_frame.grid_info()
+            menu_frame.grid_remove()
+        except (AttributeError, tk.TclError):
+            pass
+    
+    # Показываем notebook с выбранным режимом
+    try:
+        notebook.grid_info()
+        notebook.grid(row=1, column=0, pady=20, sticky="nsew")
+    except (AttributeError, tk.TclError):
+        notebook.grid(row=1, column=0, pady=20, sticky="nsew")
+    
+    # Переключаемся на нужную вкладку
+    if mode == "main":
+        notebook.select(0)
+    elif mode == "lines":
+        notebook.select(1)
+    elif mode == "paragraphs":
+        notebook.select(2)
+    elif mode == "settings":
+        notebook.select(3)
+    
+    current_mode = mode
+
+# Интерфейс
 notebook = ttk.Notebook(root)
 notebook.grid(row=1, column=0, pady=20, sticky="nsew")
+notebook.grid_remove()  # Скрываем notebook при запуске, показывается только при выборе режима
 
 # Вкладка "Главная"
 frame_main = tk.Frame(notebook, bg=bg_color)
 notebook.add(frame_main, text=translations[language]["tab_main"])
 
+# Кнопка "Назад в меню" для режима "Главная"
+back_main_button_img = create_rounded_button_image(150, 40, button_radius, button_color, bg_color)
+back_main_button = tk.Button(frame_main, image=back_main_button_img, text=translations[language]["back_to_menu"], 
+                            compound="center", command=show_main_menu,
+                            fg=text_color, font=("Courier New", 14), borderwidth=0, bg=bg_color, activebackground=bg_color)
+back_main_button.image = back_main_button_img
+back_main_button.grid(row=0, column=0, columnspan=2, padx=10, pady=10, sticky="nw")
+
 sample_text_frame = tk.Frame(frame_main)
-sample_text_frame.grid(row=0, column=0, padx=20, pady=20, sticky="nsew")
+sample_text_frame.grid(row=1, column=0, padx=20, pady=20, sticky="nsew")
 sample_text = tk.Text(sample_text_frame, wrap="word", height=20, width=40, font=("Courier New", font_size), 
                       bg=text_bg_color, fg=text_color, exportselection=0)
 sample_text.pack(side="left", fill="both", expand=True)
@@ -1149,7 +1391,7 @@ sample_scrollbar.pack(side="right", fill="y")
 sample_text.config(yscrollcommand=sample_scrollbar.set)
 
 right_frame = tk.Frame(frame_main, bg=bg_color)
-right_frame.grid(row=0, column=1, padx=20, pady=20, sticky="nsew")
+right_frame.grid(row=1, column=1, padx=20, pady=20, sticky="nsew")
 
 text_widget = tk.Text(right_frame, width=40, height=20, font=("Courier New", font_size), bg=text_bg_color, fg=text_color)
 text_widget.grid(row=0, column=0, padx=0, pady=10, sticky="nsew")
@@ -1172,7 +1414,7 @@ reset_button = tk.Button(right_frame, image=reset_button_img, text=translations[
 reset_button.image = reset_button_img
 reset_button.grid(row=4, column=0, pady=10, sticky="ew")
 
-frame_main.grid_rowconfigure(0, weight=1)
+frame_main.grid_rowconfigure(1, weight=1)
 frame_main.grid_columnconfigure(0, weight=1)
 frame_main.grid_columnconfigure(1, weight=1)
 right_frame.grid_rowconfigure(0, weight=3)
@@ -1183,8 +1425,16 @@ right_frame.grid_columnconfigure(0, weight=1)
 line_frame = tk.Frame(notebook, bg=bg_color)
 notebook.add(line_frame, text=translations[language]["tab_lines"])
 
+# Кнопка "Назад в меню" для режима "По строкам"
+back_lines_button_img = create_rounded_button_image(150, 40, button_radius, button_color, bg_color)
+back_lines_button = tk.Button(line_frame, image=back_lines_button_img, text=translations[language]["back_to_menu"], 
+                             compound="center", command=show_main_menu,
+                             fg=text_color, font=("Courier New", 14), borderwidth=0, bg=bg_color, activebackground=bg_color)
+back_lines_button.image = back_lines_button_img
+back_lines_button.grid(row=0, column=0, columnspan=2, padx=10, pady=10, sticky="nw")
+
 line_sample_text_frame = tk.Frame(line_frame)
-line_sample_text_frame.grid(row=0, column=0, padx=20, pady=20, sticky="nsew")
+line_sample_text_frame.grid(row=1, column=0, padx=20, pady=20, sticky="nsew")
 line_sample_text = tk.Text(line_sample_text_frame, wrap="word", height=20, width=40, font=("Courier New", font_size), 
                            bg=text_bg_color, fg=text_color, exportselection=0)
 line_sample_text.pack(side="left", fill="both", expand=True)
@@ -1204,7 +1454,7 @@ line_sample_scrollbar.pack(side="right", fill="y")
 line_sample_text.config(yscrollcommand=line_sample_scrollbar.set)
 
 line_right_frame = tk.Frame(line_frame, bg=bg_color)
-line_right_frame.grid(row=0, column=1, padx=20, pady=20, sticky="nsew")
+line_right_frame.grid(row=1, column=1, padx=20, pady=20, sticky="nsew")
 
 line_text_widget = tk.Text(line_right_frame, width=40, height=20, font=("Courier New", font_size), bg=text_bg_color, fg=text_color)
 line_text_widget.grid(row=0, column=0, padx=0, pady=10, sticky="nsew")
@@ -1227,7 +1477,7 @@ line_reset_button = tk.Button(line_right_frame, image=line_reset_button_img, tex
 line_reset_button.image = line_reset_button_img
 line_reset_button.grid(row=4, column=0, pady=10, sticky="ew")
 
-line_frame.grid_rowconfigure(0, weight=1)
+line_frame.grid_rowconfigure(1, weight=1)
 line_frame.grid_columnconfigure(0, weight=1)
 line_frame.grid_columnconfigure(1, weight=1)
 line_right_frame.grid_rowconfigure(0, weight=3)
@@ -1238,8 +1488,16 @@ line_right_frame.grid_columnconfigure(0, weight=1)
 quatrain_frame = tk.Frame(notebook, bg=bg_color)
 notebook.add(quatrain_frame, text=translations[language]["tab_paragraphs"])
 
+# Кнопка "Назад в меню" для режима "По абзацам"
+back_quatrain_button_img = create_rounded_button_image(150, 40, button_radius, button_color, bg_color)
+back_quatrain_button = tk.Button(quatrain_frame, image=back_quatrain_button_img, text=translations[language]["back_to_menu"], 
+                                 compound="center", command=show_main_menu,
+                                 fg=text_color, font=("Courier New", 14), borderwidth=0, bg=bg_color, activebackground=bg_color)
+back_quatrain_button.image = back_quatrain_button_img
+back_quatrain_button.grid(row=0, column=0, columnspan=2, padx=10, pady=10, sticky="nw")
+
 quatrain_sample_text_frame = tk.Frame(quatrain_frame)
-quatrain_sample_text_frame.grid(row=0, column=0, padx=20, pady=20, sticky="nsew")
+quatrain_sample_text_frame.grid(row=1, column=0, padx=20, pady=20, sticky="nsew")
 quatrain_sample_text = tk.Text(quatrain_sample_text_frame, wrap="word", height=20, width=40, font=("Courier New", font_size), 
                                bg=text_bg_color, fg=text_color, exportselection=0)
 quatrain_sample_text.pack(side="left", fill="both", expand=True)
@@ -1259,7 +1517,7 @@ quatrain_sample_scrollbar.pack(side="right", fill="y")
 quatrain_sample_text.config(yscrollcommand=quatrain_sample_scrollbar.set)
 
 quatrain_right_frame = tk.Frame(quatrain_frame, bg=bg_color)
-quatrain_right_frame.grid(row=0, column=1, padx=20, pady=20, sticky="nsew")
+quatrain_right_frame.grid(row=1, column=1, padx=20, pady=20, sticky="nsew")
 
 quatrain_text_widget = tk.Text(quatrain_right_frame, width=40, height=20, font=("Courier New", font_size), bg=text_bg_color, fg=text_color)
 quatrain_text_widget.grid(row=0, column=0, padx=0, pady=10, sticky="nsew")
@@ -1282,7 +1540,7 @@ quatrain_reset_button = tk.Button(quatrain_right_frame, image=quatrain_reset_but
 quatrain_reset_button.image = quatrain_reset_button_img
 quatrain_reset_button.grid(row=4, column=0, pady=10, sticky="ew")
 
-quatrain_frame.grid_rowconfigure(0, weight=1)
+quatrain_frame.grid_rowconfigure(1, weight=1)
 quatrain_frame.grid_columnconfigure(0, weight=1)
 quatrain_frame.grid_columnconfigure(1, weight=1)
 quatrain_right_frame.grid_rowconfigure(0, weight=3)
@@ -1292,6 +1550,14 @@ quatrain_right_frame.grid_columnconfigure(0, weight=1)
 # Вкладка "Параметры"
 frame_settings = tk.Frame(notebook, bg=bg_color)
 notebook.add(frame_settings, text=translations[language]["tab_settings"])
+
+# Кнопка "Назад в меню" для режима "Параметры"
+back_settings_button_img = create_rounded_button_image(150, 40, button_radius, button_color, bg_color)
+back_settings_button = tk.Button(frame_settings, image=back_settings_button_img, text=translations[language]["back_to_menu"], 
+                                compound="center", command=show_main_menu,
+                                fg=text_color, font=("Courier New", 14), borderwidth=0, bg=bg_color, activebackground=bg_color)
+back_settings_button.image = back_settings_button_img
+back_settings_button.grid(row=0, column=0, padx=10, pady=10, sticky="nw")
 
 settings_canvas = tk.Canvas(frame_settings, bg=bg_color)
 settings_scrollbar = ttk.Scrollbar(frame_settings, orient="vertical", command=settings_canvas.yview)
@@ -1348,8 +1614,10 @@ create_tooltip(poem_selector_button, "Исследовать стихи в Бе�
 MD_label = tk.Label(settings_frame, text=translations[language]["MD"], font=("Courier New", 13), bg=bg_color, fg=text_color)
 MD_label.grid(row=10, column=0, padx=10, pady=20, sticky="ew")
 
-settings_canvas.pack(side="left", fill="both", expand=True)
-settings_scrollbar.pack(side="right", fill="y")
+settings_canvas.grid(row=1, column=0, sticky="nsew")
+settings_scrollbar.grid(row=1, column=1, sticky="ns")
+frame_settings.grid_rowconfigure(1, weight=1)
+frame_settings.grid_columnconfigure(0, weight=1)
 
 def configure_settings_scroll(event):
     settings_canvas.configure(scrollregion=settings_canvas.bbox("all"))
@@ -1358,11 +1626,67 @@ def configure_settings_scroll(event):
 settings_frame.bind("<Configure>", configure_settings_scroll)
 settings_canvas.bind("<MouseWheel>", lambda e: on_mouse_wheel(e, settings_canvas))
 
+# Главное меню
+menu_frame = tk.Frame(root, bg=bg_color)
+menu_frame.grid(row=0, column=0, sticky="nsew", rowspan=2)
+
+# Заголовок в меню
+menu_title_label = tk.Label(menu_frame, text=translations[language]["title"], font=("Courier New", 40), bg=bg_color, fg=text_color)
+menu_title_label.pack(pady=50)
+
+# Фрейм для кнопок режимов
+menu_buttons_frame = tk.Frame(menu_frame, bg=bg_color)
+menu_buttons_frame.pack(pady=30, padx=50)
+
+# Кнопка "Главная"
+main_mode_button_img = create_rounded_button_image(settings_button_width, button_height, button_radius, button_color, bg_color)
+main_mode_button = tk.Button(menu_buttons_frame, image=main_mode_button_img, text=translations[language]["tab_main"], 
+                             compound="center", command=lambda: show_mode("main"),
+                             fg=text_color, font=("Courier New", 24), borderwidth=0, bg=bg_color, activebackground=bg_color)
+main_mode_button.image = main_mode_button_img
+main_mode_button.pack(pady=15, fill="x")
+
+# Кнопка "По строкам"
+lines_mode_button_img = create_rounded_button_image(settings_button_width, button_height, button_radius, button_color, bg_color)
+lines_mode_button = tk.Button(menu_buttons_frame, image=lines_mode_button_img, text=translations[language]["tab_lines"], 
+                             compound="center", command=lambda: show_mode("lines"),
+                             fg=text_color, font=("Courier New", 24), borderwidth=0, bg=bg_color, activebackground=bg_color)
+lines_mode_button.image = lines_mode_button_img
+lines_mode_button.pack(pady=15, fill="x")
+
+# Кнопка "По абзацам"
+paragraphs_mode_button_img = create_rounded_button_image(settings_button_width, button_height, button_radius, button_color, bg_color)
+paragraphs_mode_button = tk.Button(menu_buttons_frame, image=paragraphs_mode_button_img, text=translations[language]["tab_paragraphs"], 
+                                   compound="center", command=lambda: show_mode("paragraphs"),
+                                   fg=text_color, font=("Courier New", 24), borderwidth=0, bg=bg_color, activebackground=bg_color)
+paragraphs_mode_button.image = paragraphs_mode_button_img
+paragraphs_mode_button.pack(pady=15, fill="x")
+
+# Кнопка "Параметры"
+settings_mode_button_img = create_rounded_button_image(settings_button_width, button_height, button_radius, button_color, bg_color)
+settings_mode_button = tk.Button(menu_buttons_frame, image=settings_mode_button_img, text=translations[language]["tab_settings"], 
+                                compound="center", command=lambda: show_mode("settings"),
+                                fg=text_color, font=("Courier New", 24), borderwidth=0, bg=bg_color, activebackground=bg_color)
+settings_mode_button.image = settings_mode_button_img
+settings_mode_button.pack(pady=15, fill="x")
+
+# Кнопка "Помощь"
+help_mode_button_img = create_rounded_button_image(settings_button_width, button_height, button_radius, button_color, bg_color)
+help_mode_button = tk.Button(menu_buttons_frame, image=help_mode_button_img, text=translations[language]["help"], 
+                             compound="center", command=show_help,
+                             fg=text_color, font=("Courier New", 24), borderwidth=0, bg=bg_color, activebackground=bg_color)
+help_mode_button.image = help_mode_button_img
+help_mode_button.pack(pady=15, fill="x")
+
 # Инициализация программы
 load_settings()
 load_text_from_file()
 
+# Показываем главное меню при запуске
+show_main_menu()
+
 # Основной цикл
+root.grid_rowconfigure(0, weight=1)
 root.grid_rowconfigure(1, weight=1)
 root.grid_columnconfigure(0, weight=1)
 root.mainloop()
