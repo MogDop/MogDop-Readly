@@ -1,0 +1,43 @@
+{
+  "name": "save1",
+  "password": "",
+  "settings": {
+    "case_sensitive": true,
+    "punctuation_sensitive": true,
+    "delay_time": 6,
+    "font_size": 18,
+    "auto_clear": true,
+    "theme": "Светлая",
+    "language": "Русский",
+    "math_operations": [
+      "+",
+      "-",
+      "*",
+      "/"
+    ],
+    "math_difficulty_ranges": {
+      "Лёгкий": [
+        1,
+        20
+      ],
+      "Нормальный": [
+        1,
+        100
+      ],
+      "Сложный": [
+        1,
+        1000
+      ]
+    },
+    "math_tasks_per_level": 10,
+    "math_add": true,
+    "math_subtract": true,
+    "math_multiply": true,
+    "math_divide": true
+  },
+  "math_progress": {
+    "level": 1,
+    "points": 0.30000000000000004,
+    "tasks_completed": 3
+  }
+}
