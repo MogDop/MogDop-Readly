@@ -58,7 +58,7 @@ translations = {
     "Русский": {
         # Исходные ключи
         "title": "Ридли",
-        "tab_main": "Главная",
+        "tab_main": "Полностью",
         "tab_lines": "По строкам",
         "tab_paragraphs": "По абзацам",
         "tab_settings": "Параметры",
@@ -93,7 +93,6 @@ translations = {
         "profile_password": "Пароль (опционально):",
         "enter_password": "Введите пароль:",
         "errors": "Ошибок: {0}",
-        # Новые ключи для open_poem_selector
         "add_to_stih": "Добавить в stih.txt",
         "go_to_stihi": "Перейти на stihi.ru",
         "back": "Назад",
