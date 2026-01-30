@@ -41,12 +41,32 @@ line_stage = 1
 quatrains = []
 current_quatrain = 0
 
+# Глобальные переменные для математического тренажёра
+math_level = 1
+math_points = 0.0
+math_tasks_completed = 0
+math_difficulty = "Нормальный"
+math_current_task = None
+math_current_answer = None
+math_operations = ["+", "-", "*", "/"]
+math_difficulty_ranges = {
+    "Лёгкий": [1, 20],
+    "Нормальный": [1, 100],
+    "Сложный": [1, 1000]
+}
+math_tasks_per_level = 10
+
 theme_var = tk.StringVar(value="Светлая")
 language_var = tk.StringVar(value="Русский")
 case_var = tk.BooleanVar(value=True)
 punct_var = tk.BooleanVar(value=True)
 auto_clear_var = tk.BooleanVar(value=True)
 profile_var = tk.StringVar(value="save1")
+math_difficulty_var = tk.StringVar(value="Нормальный")
+math_add_var = tk.BooleanVar(value=True)
+math_subtract_var = tk.BooleanVar(value=True)
+math_multiply_var = tk.BooleanVar(value=True)
+math_divide_var = tk.BooleanVar(value=True)
 
 themes = {
     "Светлая": {"bg_color": "#F5F5F4", "text_bg_color": "#FFFFFF", "button_color": "#D9E7F4", "text_color": "#333333"},
@@ -105,6 +125,36 @@ translations = {
         "MD": "Автор: Глеб Лазарев, @MogDop или @mogdop9",
         "back_to_menu": "Назад в меню",
         "help": "Помощь",
+        # Математический тренажёр
+        "poems": "Стихи",
+        "mathematics": "Математика",
+        "math_mode": "Математический тренажёр",
+        "math_level": "Уровень: {0}",
+        "math_points": "Очки: {0:.1f}",
+        "math_progress": "Прогресс: {0}/{1} заданий",
+        "math_task": "Задание:",
+        "math_check": "Проверить",
+        "math_new_task": "Новое задание",
+        "math_easy": "Лёгкий",
+        "math_normal": "Нормальный",
+        "math_hard": "Сложный",
+        "math_difficulty": "Сложность:",
+        "math_correct": "Правильно! +{0:.1f} очков",
+        "math_incorrect": "Неправильно! Правильный ответ: {0}",
+        "math_level_up": "Поздравляем! Вы достигли уровня {0}!",
+        "math_operations": "Операции:",
+        "math_settings": "Настройки математики",
+        "math_add": "Сложение (+)",
+        "math_subtract": "Вычитание (-)",
+        "math_multiply": "Умножение (×)",
+        "math_divide": "Деление (÷)",
+        "math_range_easy": "Диапазон для лёгкого:",
+        "math_range_normal": "Диапазон для нормального:",
+        "math_range_hard": "Диапазон для сложного:",
+        "math_tasks_per_level": "Заданий для повышения уровня:",
+        "general_settings": "Общие настройки",
+        "poems_settings": "Настройки стихов",
+        "math_settings_title": "Настройки математики",
         "help_title": "Справка по программе Ридли",
         "help_text": """Ридли - это программа для тренировки памяти и навыков письма.
 
@@ -203,6 +253,36 @@ translations = {
         "MD": "Author: Gleb Lazarev, @MogDop or @mogdop9",
         "back_to_menu": "Back to Menu",
         "help": "Help",
+        # Math trainer
+        "poems": "Poems",
+        "mathematics": "Mathematics",
+        "math_mode": "Math Trainer",
+        "math_level": "Level: {0}",
+        "math_points": "Points: {0:.1f}",
+        "math_progress": "Progress: {0}/{1} tasks",
+        "math_task": "Task:",
+        "math_check": "Check",
+        "math_new_task": "New Task",
+        "math_easy": "Easy",
+        "math_normal": "Normal",
+        "math_hard": "Hard",
+        "math_difficulty": "Difficulty:",
+        "math_correct": "Correct! +{0:.1f} points",
+        "math_incorrect": "Incorrect! Correct answer: {0}",
+        "math_level_up": "Congratulations! You reached level {0}!",
+        "math_operations": "Operations:",
+        "math_settings": "Math Settings",
+        "math_add": "Addition (+)",
+        "math_subtract": "Subtraction (-)",
+        "math_multiply": "Multiplication (×)",
+        "math_divide": "Division (÷)",
+        "math_range_easy": "Range for easy:",
+        "math_range_normal": "Range for normal:",
+        "math_range_hard": "Range for hard:",
+        "math_tasks_per_level": "Tasks per level:",
+        "general_settings": "General Settings",
+        "poems_settings": "Poems Settings",
+        "math_settings_title": "Math Settings",
         "help_title": "Readly Program Help",
         "help_text": """Readly is a program for training memory and writing skills.
 
@@ -605,6 +685,178 @@ def reset_quatrains():
     quatrain_reset_button.config(state=tk.DISABLED)
     update_button_color(quatrain_check_button, button_color)
 
+# Функции математического тренажёра
+import random
+
+def generate_math_task():
+    """Генерирует случайное математическое задание"""
+    global math_current_task, math_current_answer, math_operations, math_difficulty, math_difficulty_ranges
+    
+    # Получаем доступные операции из настроек
+    available_ops = [op for op in math_operations if op in ["+", "-", "*", "/"]]
+    if not available_ops:
+        available_ops = ["+"]  # По умолчанию сложение
+    
+    # Выбираем случайную операцию
+    operation = random.choice(available_ops)
+    
+    # Получаем диапазон для текущей сложности
+    min_val, max_val = math_difficulty_ranges.get(math_difficulty, [1, 100])
+    
+    # Генерируем числа
+    num1 = random.randint(min_val, max_val)
+    num2 = random.randint(min_val, max_val)
+    
+    # Для вычитания и деления убеждаемся, что результат положительный
+    if operation == "-":
+        if num1 < num2:
+            num1, num2 = num2, num1
+    elif operation == "/":
+        # Для деления делаем так, чтобы результат был целым
+        num2 = random.randint(1, min(20, max_val // 2))
+        num1 = num2 * random.randint(1, min(20, max_val // num2))
+    
+    # Вычисляем правильный ответ
+    if operation == "+":
+        answer = num1 + num2
+        op_symbol = "+"
+    elif operation == "-":
+        answer = num1 - num2
+        op_symbol = "-"
+    elif operation == "*":
+        answer = num1 * num2
+        op_symbol = "×"
+    elif operation == "/":
+        answer = num1 // num2
+        op_symbol = "÷"
+    
+    math_current_task = f"{num1} {op_symbol} {num2} = ?"
+    math_current_answer = answer
+    
+    return math_current_task, math_current_answer
+
+def check_math_answer():
+    """Проверяет ответ пользователя"""
+    global math_level, math_points, math_tasks_completed, math_difficulty, math_tasks_per_level
+    
+    try:
+        user_answer = int(math_answer_entry.get().strip())
+        
+        if user_answer == math_current_answer:
+            # Правильный ответ
+            play_sound()
+            
+            # Начисляем очки в зависимости от сложности
+            points_earned = 0.1 if math_difficulty == "Лёгкий" else (0.3 if math_difficulty == "Нормальный" else 0.5)
+            math_points += points_earned
+            math_tasks_completed += 1
+            
+            # Обновляем интерфейс
+            update_math_progress_display()
+            update_button_color(math_check_button, "green")
+            math_status_label.config(text=translations[language]["math_correct"].format(points_earned))
+            
+            # Проверяем повышение уровня
+            if math_tasks_completed >= math_tasks_per_level:
+                math_level += 1
+                math_tasks_completed = 0
+                messagebox.showinfo(translations[language]["success"], 
+                                  translations[language]["math_level_up"].format(math_level))
+                update_math_progress_display()
+            
+            # Сохраняем прогресс
+            save_settings()
+            
+            # Очищаем поле и генерируем новое задание через задержку
+            root.after(delay_time * 1000, lambda: (math_answer_entry.delete(0, tk.END), 
+                                                   generate_new_math_task(), 
+                                                   update_button_color(math_check_button, button_color),
+                                                   math_status_label.config(text="")))
+        else:
+            # Неправильный ответ
+            play_sound1()
+            update_button_color(math_check_button, "red")
+            math_status_label.config(text=translations[language]["math_incorrect"].format(math_current_answer))
+            root.after(delay_time * 1000, lambda: (update_button_color(math_check_button, button_color),
+                                                  math_status_label.config(text="")))
+    except ValueError:
+        messagebox.showwarning("Warning" if language == "English" else "Предупреждение",
+                             "Please enter a valid number" if language == "English" else "Пожалуйста, введите число")
+
+def generate_new_math_task():
+    """Генерирует новое задание и обновляет интерфейс"""
+    task, answer = generate_math_task()
+    math_task_label.config(text=f"{translations[language]['math_task']} {task}")
+
+def update_math_progress_display():
+    """Обновляет отображение прогресса"""
+    math_level_label.config(text=translations[language]["math_level"].format(math_level))
+    math_points_label.config(text=translations[language]["math_points"].format(math_points))
+    math_progress_label.config(text=translations[language]["math_progress"].format(math_tasks_completed, math_tasks_per_level))
+
+def update_math_difficulty():
+    """Обновляет сложность математического тренажёра"""
+    global math_difficulty
+    math_difficulty = math_difficulty_var.get()
+    generate_new_math_task()
+
+def update_math_operations():
+    """Обновляет список доступных операций"""
+    global math_operations
+    math_operations = []
+    if math_add_var.get():
+        math_operations.append("+")
+    if math_subtract_var.get():
+        math_operations.append("-")
+    if math_multiply_var.get():
+        math_operations.append("*")
+    if math_divide_var.get():
+        math_operations.append("/")
+    # Если ни одна операция не выбрана, добавляем сложение по умолчанию
+    if not math_operations:
+        math_operations = ["+"]
+        math_add_var.set(True)
+
+def update_math_tasks_per_level():
+    """Обновляет количество заданий для повышения уровня"""
+    global math_tasks_per_level
+    try:
+        math_tasks_per_level = int(math_tasks_per_level_entry.get())
+        if math_tasks_per_level < 1:
+            math_tasks_per_level = 10
+            math_tasks_per_level_entry.delete(0, tk.END)
+            math_tasks_per_level_entry.insert(0, "10")
+        if 'math_progress_label' in globals():
+            update_math_progress_display()
+    except ValueError:
+        math_tasks_per_level = 10
+        math_tasks_per_level_entry.delete(0, tk.END)
+        math_tasks_per_level_entry.insert(0, "10")
+
+def update_math_ranges():
+    """Обновляет диапазоны чисел для разных уровней сложности"""
+    global math_difficulty_ranges
+    try:
+        # Лёгкий
+        easy_range = math_range_easy_entry.get().strip()
+        if "-" in easy_range:
+            min_val, max_val = map(int, easy_range.split("-"))
+            math_difficulty_ranges["Лёгкий"] = [min_val, max_val]
+        
+        # Нормальный
+        normal_range = math_range_normal_entry.get().strip()
+        if "-" in normal_range:
+            min_val, max_val = map(int, normal_range.split("-"))
+            math_difficulty_ranges["Нормальный"] = [min_val, max_val]
+        
+        # Сложный
+        hard_range = math_range_hard_entry.get().strip()
+        if "-" in hard_range:
+            min_val, max_val = map(int, hard_range.split("-"))
+            math_difficulty_ranges["Сложный"] = [min_val, max_val]
+    except (ValueError, AttributeError):
+        pass  # Игнорируем ошибки парсинга
+
 def update_case_sensitivity():
     global case_sensitive
     case_sensitive = case_var.get()
@@ -668,6 +920,43 @@ def update_theme():
     theme_label.config(bg=bg_color, fg=text_color)
     language_label.config(bg=bg_color, fg=text_color)
     
+    # Обновляем цвета математического тренажёра
+    if 'math_frame' in globals() and math_frame:
+        math_frame.config(bg=bg_color)
+        math_left_frame.config(bg=bg_color)
+        math_right_frame.config(bg=bg_color)
+        math_level_label.config(bg=bg_color, fg=text_color)
+        math_points_label.config(bg=bg_color, fg=text_color)
+        math_progress_label.config(bg=bg_color, fg=text_color)
+        math_difficulty_label.config(bg=bg_color, fg=text_color)
+        math_difficulty_frame.config(bg=bg_color)
+        math_task_label.config(bg=bg_color, fg=text_color)
+        math_status_label.config(bg=bg_color, fg=text_color)
+        math_answer_entry.config(bg=text_bg_color, fg=text_color)
+        if 'math_easy_radio' in globals():
+            math_easy_radio.config(bg=bg_color, fg=text_color, selectcolor=bg_color)
+            math_normal_radio.config(bg=bg_color, fg=text_color, selectcolor=bg_color)
+            math_hard_radio.config(bg=bg_color, fg=text_color, selectcolor=bg_color)
+    
+    # Обновляем цвета подменю стихов
+    if poems_submenu_frame:
+        poems_submenu_frame.config(bg=bg_color)
+        poems_submenu_buttons_frame.config(bg=bg_color)
+        poems_submenu_title_label.config(bg=bg_color, fg=text_color)
+    
+    # Обновляем цвета настроек математики
+    if 'math_settings_title' in globals():
+        math_settings_title.config(bg=bg_color, fg=text_color)
+        math_operations_label.config(bg=bg_color, fg=text_color)
+        math_add_check.config(bg=bg_color, fg=text_color)
+        math_subtract_check.config(bg=bg_color, fg=text_color)
+        math_multiply_check.config(bg=bg_color, fg=text_color)
+        math_divide_check.config(bg=bg_color, fg=text_color)
+        math_range_easy_label.config(bg=bg_color, fg=text_color)
+        math_range_normal_label.config(bg=bg_color, fg=text_color)
+        math_range_hard_label.config(bg=bg_color, fg=text_color)
+        math_tasks_per_level_label.config(bg=bg_color, fg=text_color)
+    
     update_all_buttons()
 
 def update_language():
@@ -698,12 +987,22 @@ def update_language():
     # Обновляем кнопки главного меню
     if menu_frame:
         menu_title_label.config(text=translations[language]["title"])
-        main_mode_button.config(text=translations[language]["tab_main"])
-        lines_mode_button.config(text=translations[language]["tab_lines"])
-        paragraphs_mode_button.config(text=translations[language]["tab_paragraphs"])
+        if 'poems_mode_button' in globals():
+            poems_mode_button.config(text=translations[language]["poems"])
+        if 'math_mode_button' in globals():
+            math_mode_button.config(text=translations[language]["mathematics"])
         settings_mode_button.config(text=translations[language]["tab_settings"])
-        if 'help_mode_button' in globals():
-            help_mode_button.config(text=translations[language]["help"])
+    # Обновляем подменю стихов
+    if poems_submenu_frame:
+        poems_submenu_title_label.config(text=translations[language]["poems"])
+        if 'poems_main_mode_button' in globals():
+            poems_main_mode_button.config(text=translations[language]["tab_main"])
+        if 'poems_lines_mode_button' in globals():
+            poems_lines_mode_button.config(text=translations[language]["tab_lines"])
+        if 'poems_paragraphs_mode_button' in globals():
+            poems_paragraphs_mode_button.config(text=translations[language]["tab_paragraphs"])
+        if 'poems_back_button' in globals():
+            poems_back_button.config(text=translations[language]["back_to_menu"])
     # Обновляем кнопки "Назад"
     if 'back_main_button' in globals():
         back_main_button.config(text=translations[language]["back_to_menu"])
@@ -713,34 +1012,93 @@ def update_language():
         back_quatrain_button.config(text=translations[language]["back_to_menu"])
     if 'back_settings_button' in globals():
         back_settings_button.config(text=translations[language]["back_to_menu"])
+    # Обновляем математический тренажёр
+    if 'math_frame' in globals() and math_frame:
+        if 'math_back_button' in globals():
+            math_back_button.config(text=translations[language]["back_to_menu"])
+        if 'math_level_label' in globals():
+            update_math_progress_display()
+        if 'math_task_label' in globals() and math_current_task:
+            math_task_label.config(text=f"{translations[language]['math_task']} {math_current_task.split('=')[0]} = ?")
+        if 'math_check_button' in globals():
+            math_check_button.config(text=translations[language]["math_check"])
+        if 'math_new_task_button' in globals():
+            math_new_task_button.config(text=translations[language]["math_new_task"])
+        if 'math_difficulty_label' in globals():
+            math_difficulty_label.config(text=translations[language]["math_difficulty"])
+        if 'math_easy_radio' in globals():
+            math_easy_radio.config(text=translations[language]["math_easy"])
+            math_normal_radio.config(text=translations[language]["math_normal"])
+            math_hard_radio.config(text=translations[language]["math_hard"])
+    # Обновляем настройки математики
+    if 'math_settings_title' in globals():
+        math_settings_title.config(text=translations[language]["math_settings_title"])
+    if 'math_operations_label' in globals():
+        math_operations_label.config(text=translations[language]["math_operations"])
+    if 'math_add_check' in globals():
+        math_add_check.config(text=translations[language]["math_add"])
+        math_subtract_check.config(text=translations[language]["math_subtract"])
+        math_multiply_check.config(text=translations[language]["math_multiply"])
+        math_divide_check.config(text=translations[language]["math_divide"])
+    if 'math_range_easy_label' in globals():
+        math_range_easy_label.config(text=translations[language]["math_range_easy"])
+        math_range_normal_label.config(text=translations[language]["math_range_normal"])
+        math_range_hard_label.config(text=translations[language]["math_range_hard"])
+    if 'math_tasks_per_level_label' in globals():
+        math_tasks_per_level_label.config(text=translations[language]["math_tasks_per_level"])
     if lines:
         line_status_label.config(text=translations[language]["status_lines"].format(current_line + 1, len(lines)))
     if quatrains:
         quatrain_status_label.config(text=translations[language]["status_para"].format(current_quatrain + 1, len(quatrains)))
 
 def save_settings():
+    global math_operations, math_difficulty_ranges, math_tasks_per_level
+    # Обновляем диапазоны перед сохранением
+    update_math_ranges()
+    update_math_tasks_per_level()
+    
     settings = {
         "case_sensitive": case_sensitive, "punctuation_sensitive": punctuation_sensitive,
         "delay_time": delay_time, "font_size": font_size, "auto_clear": auto_clear,
-        "theme": theme_var.get(), "language": language_var.get()
+        "theme": theme_var.get(), "language": language_var.get(),
+        "math_operations": math_operations,
+        "math_difficulty_ranges": math_difficulty_ranges,
+        "math_tasks_per_level": math_tasks_per_level,
+        "math_add": math_add_var.get(),
+        "math_subtract": math_subtract_var.get(),
+        "math_multiply": math_multiply_var.get(),
+        "math_divide": math_divide_var.get()
     }
     script_dir = os.path.dirname(os.path.abspath(__file__))
     settings_path = os.path.join(script_dir, f"{current_profile}.txt")
 
+    # Сохраняем прогресс математики
+    math_progress = {
+        "level": math_level,
+        "points": math_points,
+        "tasks_completed": math_tasks_completed
+    }
 
-    with open(settings_path, "r", encoding="utf-8") as f:
-        profile_data = json.load(f)
+    try:
+        with open(settings_path, "r", encoding="utf-8") as f:
+            profile_data = json.load(f)
+    except (FileNotFoundError, json.JSONDecodeError):
+        profile_data = {"name": current_profile, "password": "", "settings": {}, "math_progress": {}}
+    
     profile_data["settings"] = settings
+    profile_data["math_progress"] = math_progress
     with open(settings_path, "w", encoding="utf-8") as f:
-        json.dump(profile_data, f)
+        json.dump(profile_data, f, ensure_ascii=False, indent=2)
 
 def load_settings():
     global case_sensitive, punctuation_sensitive, delay_time, font_size, auto_clear, theme, language, current_profile
+    global math_level, math_points, math_tasks_completed, math_operations, math_difficulty_ranges, math_tasks_per_level
     script_dir = os.path.dirname(os.path.abspath(__file__))
     settings_path = os.path.join(script_dir, f"{current_profile}.txt")
     if os.path.exists(settings_path):
         with open(settings_path, "r", encoding="utf-8") as f:
-            settings = json.load(f)
+            profile_data = json.load(f)
+            settings = profile_data.get("settings", {})
             case_sensitive = settings.get("case_sensitive", True)
             punctuation_sensitive = settings.get("punctuation_sensitive", True)
             delay_time = settings.get("delay_time", 6)
@@ -753,8 +1111,47 @@ def load_settings():
             auto_clear_var.set(auto_clear)
             font_entry.delete(0, tk.END)
             font_entry.insert(0, str(font_size))
+            
+            # Загружаем настройки математики
+            math_operations = settings.get("math_operations", ["+", "-", "*", "/"])
+            math_difficulty_ranges = settings.get("math_difficulty_ranges", {
+                "Лёгкий": [1, 20],
+                "Нормальный": [1, 100],
+                "Сложный": [1, 1000]
+            })
+            math_tasks_per_level = settings.get("math_tasks_per_level", 10)
+            
+            # Загружаем чекбоксы операций
+            math_add_var.set(settings.get("math_add", True))
+            math_subtract_var.set(settings.get("math_subtract", True))
+            math_multiply_var.set(settings.get("math_multiply", True))
+            math_divide_var.set(settings.get("math_divide", True))
+            
+            # Обновляем поля диапазонов
+            if 'math_range_easy_entry' in globals():
+                math_range_easy_entry.delete(0, tk.END)
+                math_range_easy_entry.insert(0, f"{math_difficulty_ranges['Лёгкий'][0]}-{math_difficulty_ranges['Лёгкий'][1]}")
+                math_range_normal_entry.delete(0, tk.END)
+                math_range_normal_entry.insert(0, f"{math_difficulty_ranges['Нормальный'][0]}-{math_difficulty_ranges['Нормальный'][1]}")
+                math_range_hard_entry.delete(0, tk.END)
+                math_range_hard_entry.insert(0, f"{math_difficulty_ranges['Сложный'][0]}-{math_difficulty_ranges['Сложный'][1]}")
+                math_tasks_per_level_entry.delete(0, tk.END)
+                math_tasks_per_level_entry.insert(0, str(math_tasks_per_level))
+            
+            # Загружаем прогресс математики
+            math_progress = profile_data.get("math_progress", {})
+            math_level = math_progress.get("level", 1)
+            math_points = math_progress.get("points", 0.0)
+            math_tasks_completed = math_progress.get("tasks_completed", 0)
+            
             update_theme()
             update_language()
+            
+            # Обновляем отображение прогресса математики если интерфейс создан
+            if 'math_level_label' in globals():
+                update_math_progress_display()
+                if not math_current_task:
+                    generate_new_math_task()
 
 def open_folder():
     folder_path = os.path.dirname(os.path.abspath(__file__))
@@ -1126,6 +1523,49 @@ def update_all_buttons():
         new_img = create_rounded_button_image(settings_button_width, button_height, button_radius, button_color, bg_color)
         help_mode_button.config(image=new_img, fg=text_color)
         help_mode_button.image = new_img
+    # Обновляем кнопки математического тренажёра
+    if 'math_check_button' in globals():
+        new_img = create_rounded_button_image(button_width, button_height, button_radius, button_color, bg_color)
+        math_check_button.config(image=new_img, fg=text_color)
+        math_check_button.image = new_img
+    if 'math_new_task_button' in globals():
+        new_img = create_rounded_button_image(button_width, button_height, button_radius, button_color, bg_color)
+        math_new_task_button.config(image=new_img, fg=text_color)
+        math_new_task_button.image = new_img
+    if 'math_back_button' in globals():
+        new_img = create_rounded_button_image(150, 40, button_radius, button_color, bg_color)
+        math_back_button.config(image=new_img, fg=text_color)
+        math_back_button.image = new_img
+    # Обновляем кнопки главного меню
+    if 'poems_mode_button' in globals():
+        new_img = create_rounded_button_image(settings_button_width, button_height, button_radius, button_color, bg_color)
+        poems_mode_button.config(image=new_img, fg=text_color)
+        poems_mode_button.image = new_img
+    if 'math_mode_button' in globals():
+        new_img = create_rounded_button_image(settings_button_width, button_height, button_radius, button_color, bg_color)
+        math_mode_button.config(image=new_img, fg=text_color)
+        math_mode_button.image = new_img
+    if 'settings_mode_button' in globals():
+        new_img = create_rounded_button_image(settings_button_width, button_height, button_radius, button_color, bg_color)
+        settings_mode_button.config(image=new_img, fg=text_color)
+        settings_mode_button.image = new_img
+    # Обновляем кнопки подменю стихов
+    if 'poems_main_mode_button' in globals():
+        new_img = create_rounded_button_image(settings_button_width, button_height, button_radius, button_color, bg_color)
+        poems_main_mode_button.config(image=new_img, fg=text_color)
+        poems_main_mode_button.image = new_img
+    if 'poems_lines_mode_button' in globals():
+        new_img = create_rounded_button_image(settings_button_width, button_height, button_radius, button_color, bg_color)
+        poems_lines_mode_button.config(image=new_img, fg=text_color)
+        poems_lines_mode_button.image = new_img
+    if 'poems_paragraphs_mode_button' in globals():
+        new_img = create_rounded_button_image(settings_button_width, button_height, button_radius, button_color, bg_color)
+        poems_paragraphs_mode_button.config(image=new_img, fg=text_color)
+        poems_paragraphs_mode_button.image = new_img
+    if 'poems_back_button' in globals():
+        new_img = create_rounded_button_image(settings_button_width, button_height, button_radius, button_color, bg_color)
+        poems_back_button.config(image=new_img, fg=text_color)
+        poems_back_button.image = new_img
 
 def switch_profile(profile):
     global current_profile
@@ -1189,12 +1629,19 @@ def create_profile():
             return
         
         selected_profile = profile_var.get()
-        script_dir = os.path.dirname(os.path.
-
-abspath(__file__))
+        script_dir = os.path.dirname(os.path.abspath(__file__))
         profile_path = os.path.join(script_dir, f"{selected_profile}.txt")
         with open(profile_path, "w", encoding="utf-8") as f:
-            json.dump({"name": profile_name, "password": profile_password, "settings": {}}, f)
+            json.dump({
+                "name": profile_name, 
+                "password": profile_password, 
+                "settings": {},
+                "math_progress": {
+                    "level": 1,
+                    "points": 0.0,
+                    "tasks_completed": 0
+                }
+            }, f, ensure_ascii=False, indent=2)
         messagebox.showinfo("Success" if language == "English" else "Успех", 
                            "Profile created" if language == "English" else "Профиль создан")
         profile_window.destroy()
@@ -1297,17 +1744,34 @@ def prevent_selection(event, text_widget):
 # Глобальные переменные для навигации
 current_mode = None  # Текущий активный режим
 menu_frame = None  # Фрейм главного меню
+poems_submenu_frame = None  # Фрейм подменю стихов
 
 # Функции навигации
 def show_main_menu():
     """Показывает главное меню и скрывает текущий режим"""
-    global current_mode, menu_frame
+    global current_mode, menu_frame, poems_submenu_frame
     
     # Скрываем текущий режим (notebook)
     if notebook.winfo_viewable():
         try:
             notebook.grid_info()
             notebook.grid_remove()
+        except (AttributeError, tk.TclError):
+            pass
+    
+    # Скрываем подменю стихов если открыто
+    if poems_submenu_frame:
+        try:
+            poems_submenu_frame.grid_info()
+            poems_submenu_frame.grid_remove()
+        except (AttributeError, tk.TclError):
+            pass
+    
+    # Скрываем математический тренажёр если открыт
+    if 'math_frame' in globals() and math_frame:
+        try:
+            math_frame.grid_info()
+            math_frame.grid_remove()
         except (AttributeError, tk.TclError):
             pass
     
@@ -1321,6 +1785,69 @@ def show_main_menu():
     
     current_mode = None
 
+def show_poems_submenu():
+    """Показывает подменю для режимов стихов"""
+    global poems_submenu_frame
+    
+    # Скрываем главное меню
+    if menu_frame:
+        try:
+            menu_frame.grid_info()
+            menu_frame.grid_remove()
+        except (AttributeError, tk.TclError):
+            pass
+    
+    # Показываем подменю стихов
+    if poems_submenu_frame:
+        try:
+            poems_submenu_frame.grid_info()
+            poems_submenu_frame.grid()
+        except (AttributeError, tk.TclError):
+            poems_submenu_frame.grid(row=0, column=0, sticky="nsew")
+
+def show_math_trainer():
+    """Показывает математический тренажёр"""
+    global current_mode
+    
+    # Скрываем главное меню
+    if menu_frame:
+        try:
+            menu_frame.grid_info()
+            menu_frame.grid_remove()
+        except (AttributeError, tk.TclError):
+            pass
+    
+    # Скрываем подменю стихов если открыто
+    if poems_submenu_frame:
+        try:
+            poems_submenu_frame.grid_info()
+            poems_submenu_frame.grid_remove()
+        except (AttributeError, tk.TclError):
+            pass
+    
+    # Скрываем notebook если открыт
+    if notebook.winfo_viewable():
+        try:
+            notebook.grid_info()
+            notebook.grid_remove()
+        except (AttributeError, tk.TclError):
+            pass
+    
+    # Показываем математический тренажёр
+    if 'math_frame' in globals() and math_frame:
+        try:
+            math_frame.grid_info()
+            math_frame.grid(row=0, column=0, sticky="nsew")
+        except (AttributeError, tk.TclError):
+            math_frame.grid(row=0, column=0, sticky="nsew")
+        
+        # Генерируем задание если его нет
+        if not math_current_task:
+            generate_new_math_task()
+        update_math_progress_display()
+    
+    current_mode = "math"
+
 def show_mode(mode):
     """Показывает выбранный режим и скрывает меню"""
     global current_mode
@@ -1330,6 +1857,22 @@ def show_mode(mode):
         try:
             menu_frame.grid_info()
             menu_frame.grid_remove()
+        except (AttributeError, tk.TclError):
+            pass
+    
+    # Скрываем подменю стихов если открыто
+    if poems_submenu_frame:
+        try:
+            poems_submenu_frame.grid_info()
+            poems_submenu_frame.grid_remove()
+        except (AttributeError, tk.TclError):
+            pass
+    
+    # Скрываем математический тренажёр если открыт
+    if 'math_frame' in globals() and math_frame:
+        try:
+            math_frame.grid_info()
+            math_frame.grid_remove()
         except (AttributeError, tk.TclError):
             pass
     
@@ -1610,8 +2153,80 @@ poem_selector_button.image = poem_selector_button_img
 poem_selector_button.grid(row=9, column=0, pady=10, sticky="ew")
 create_tooltip(poem_selector_button, "Исследовать стихи в Бете. Пока что берутся лишь стихи с главной страницы stihi.ru, поиска нет. Там исключительно новые современные стихи.")
 
+# Разделитель
+separator1 = tk.Frame(settings_frame, height=2, bg=text_color)
+separator1.grid(row=10, column=0, sticky="ew", pady=20)
+
+# Заголовок раздела "Настройки математики"
+math_settings_title = tk.Label(settings_frame, text=translations[language]["math_settings_title"], 
+                               font=("Courier New", 20, "bold"), bg=bg_color, fg=text_color)
+math_settings_title.grid(row=11, column=0, pady=10, sticky="w")
+
+# Операции
+math_operations_label = tk.Label(settings_frame, text=translations[language]["math_operations"], 
+                                font=("Courier New", 16), bg=bg_color, fg=text_color)
+math_operations_label.grid(row=12, column=0, pady=10, sticky="w")
+
+math_add_check = tk.Checkbutton(settings_frame, text=translations[language]["math_add"], 
+                                variable=math_add_var, font=("Courier New", 16), 
+                                bg=bg_color, fg=text_color, command=lambda: (update_math_operations(), save_settings()))
+math_add_check.grid(row=13, column=0, pady=5, sticky="w")
+
+math_subtract_check = tk.Checkbutton(settings_frame, text=translations[language]["math_subtract"], 
+                                     variable=math_subtract_var, font=("Courier New", 16), 
+                                     bg=bg_color, fg=text_color, command=lambda: (update_math_operations(), save_settings()))
+math_subtract_check.grid(row=14, column=0, pady=5, sticky="w")
+
+math_multiply_check = tk.Checkbutton(settings_frame, text=translations[language]["math_multiply"], 
+                                     variable=math_multiply_var, font=("Courier New", 16), 
+                                     bg=bg_color, fg=text_color, command=lambda: (update_math_operations(), save_settings()))
+math_multiply_check.grid(row=15, column=0, pady=5, sticky="w")
+
+math_divide_check = tk.Checkbutton(settings_frame, text=translations[language]["math_divide"], 
+                                   variable=math_divide_var, font=("Courier New", 16), 
+                                   bg=bg_color, fg=text_color, command=lambda: (update_math_operations(), save_settings()))
+math_divide_check.grid(row=16, column=0, pady=5, sticky="w")
+
+# Диапазоны чисел
+math_range_easy_label = tk.Label(settings_frame, text=translations[language]["math_range_easy"], 
+                                 font=("Courier New", 16), bg=bg_color, fg=text_color)
+math_range_easy_label.grid(row=17, column=0, pady=10, sticky="w")
+
+math_range_easy_entry = tk.Entry(settings_frame, width=20, font=("Courier New", 14))
+math_range_easy_entry.grid(row=17, column=0, padx=(250, 0), pady=10, sticky="w")
+math_range_easy_entry.insert(0, f"{math_difficulty_ranges['Лёгкий'][0]}-{math_difficulty_ranges['Лёгкий'][1]}")
+math_range_easy_entry.bind("<FocusOut>", lambda e: (update_math_ranges(), save_settings()))
+
+math_range_normal_label = tk.Label(settings_frame, text=translations[language]["math_range_normal"], 
+                                   font=("Courier New", 16), bg=bg_color, fg=text_color)
+math_range_normal_label.grid(row=18, column=0, pady=10, sticky="w")
+
+math_range_normal_entry = tk.Entry(settings_frame, width=20, font=("Courier New", 14))
+math_range_normal_entry.grid(row=18, column=0, padx=(250, 0), pady=10, sticky="w")
+math_range_normal_entry.insert(0, f"{math_difficulty_ranges['Нормальный'][0]}-{math_difficulty_ranges['Нормальный'][1]}")
+math_range_normal_entry.bind("<FocusOut>", lambda e: (update_math_ranges(), save_settings()))
+
+math_range_hard_label = tk.Label(settings_frame, text=translations[language]["math_range_hard"], 
+                                 font=("Courier New", 16), bg=bg_color, fg=text_color)
+math_range_hard_label.grid(row=19, column=0, pady=10, sticky="w")
+
+math_range_hard_entry = tk.Entry(settings_frame, width=20, font=("Courier New", 14))
+math_range_hard_entry.grid(row=19, column=0, padx=(250, 0), pady=10, sticky="w")
+math_range_hard_entry.insert(0, f"{math_difficulty_ranges['Сложный'][0]}-{math_difficulty_ranges['Сложный'][1]}")
+math_range_hard_entry.bind("<FocusOut>", lambda e: (update_math_ranges(), save_settings()))
+
+# Количество заданий для повышения уровня
+math_tasks_per_level_label = tk.Label(settings_frame, text=translations[language]["math_tasks_per_level"], 
+                                      font=("Courier New", 16), bg=bg_color, fg=text_color)
+math_tasks_per_level_label.grid(row=20, column=0, pady=10, sticky="w")
+
+math_tasks_per_level_entry = tk.Entry(settings_frame, width=5, font=("Courier New", 16))
+math_tasks_per_level_entry.grid(row=20, column=0, padx=(250, 0), pady=10, sticky="w")
+math_tasks_per_level_entry.insert(0, str(math_tasks_per_level))
+math_tasks_per_level_entry.bind("<FocusOut>", lambda e: (update_math_tasks_per_level(), save_settings()))
+
 MD_label = tk.Label(settings_frame, text=translations[language]["MD"], font=("Courier New", 13), bg=bg_color, fg=text_color)
-MD_label.grid(row=10, column=0, padx=10, pady=20, sticky="ew")
+MD_label.grid(row=21, column=0, padx=10, pady=20, sticky="ew")
 
 settings_canvas.grid(row=1, column=0, sticky="nsew")
 settings_scrollbar.grid(row=1, column=1, sticky="ns")
@@ -1637,29 +2252,21 @@ menu_title_label.pack(pady=50)
 menu_buttons_frame = tk.Frame(menu_frame, bg=bg_color)
 menu_buttons_frame.pack(pady=30, padx=50)
 
-# Кнопка "Главная"
-main_mode_button_img = create_rounded_button_image(settings_button_width, button_height, button_radius, button_color, bg_color)
-main_mode_button = tk.Button(menu_buttons_frame, image=main_mode_button_img, text=translations[language]["tab_main"], 
-                             compound="center", command=lambda: show_mode("main"),
+# Кнопка "Стихи"
+poems_mode_button_img = create_rounded_button_image(settings_button_width, button_height, button_radius, button_color, bg_color)
+poems_mode_button = tk.Button(menu_buttons_frame, image=poems_mode_button_img, text=translations[language]["poems"], 
+                             compound="center", command=show_poems_submenu,
                              fg=text_color, font=("Courier New", 24), borderwidth=0, bg=bg_color, activebackground=bg_color)
-main_mode_button.image = main_mode_button_img
-main_mode_button.pack(pady=15, fill="x")
+poems_mode_button.image = poems_mode_button_img
+poems_mode_button.pack(pady=15, fill="x")
 
-# Кнопка "По строкам"
-lines_mode_button_img = create_rounded_button_image(settings_button_width, button_height, button_radius, button_color, bg_color)
-lines_mode_button = tk.Button(menu_buttons_frame, image=lines_mode_button_img, text=translations[language]["tab_lines"], 
-                             compound="center", command=lambda: show_mode("lines"),
+# Кнопка "Математика"
+math_mode_button_img = create_rounded_button_image(settings_button_width, button_height, button_radius, button_color, bg_color)
+math_mode_button = tk.Button(menu_buttons_frame, image=math_mode_button_img, text=translations[language]["mathematics"], 
+                             compound="center", command=show_math_trainer,
                              fg=text_color, font=("Courier New", 24), borderwidth=0, bg=bg_color, activebackground=bg_color)
-lines_mode_button.image = lines_mode_button_img
-lines_mode_button.pack(pady=15, fill="x")
-
-# Кнопка "По абзацам"
-paragraphs_mode_button_img = create_rounded_button_image(settings_button_width, button_height, button_radius, button_color, bg_color)
-paragraphs_mode_button = tk.Button(menu_buttons_frame, image=paragraphs_mode_button_img, text=translations[language]["tab_paragraphs"], 
-                                   compound="center", command=lambda: show_mode("paragraphs"),
-                                   fg=text_color, font=("Courier New", 24), borderwidth=0, bg=bg_color, activebackground=bg_color)
-paragraphs_mode_button.image = paragraphs_mode_button_img
-paragraphs_mode_button.pack(pady=15, fill="x")
+math_mode_button.image = math_mode_button_img
+math_mode_button.pack(pady=15, fill="x")
 
 # Кнопка "Параметры"
 settings_mode_button_img = create_rounded_button_image(settings_button_width, button_height, button_radius, button_color, bg_color)
@@ -1669,13 +2276,138 @@ settings_mode_button = tk.Button(menu_buttons_frame, image=settings_mode_button_
 settings_mode_button.image = settings_mode_button_img
 settings_mode_button.pack(pady=15, fill="x")
 
-# Кнопка "Помощь"
-help_mode_button_img = create_rounded_button_image(settings_button_width, button_height, button_radius, button_color, bg_color)
-help_mode_button = tk.Button(menu_buttons_frame, image=help_mode_button_img, text=translations[language]["help"], 
-                             compound="center", command=show_help,
+# Подменю для стихов
+poems_submenu_frame = tk.Frame(root, bg=bg_color)
+poems_submenu_frame.grid(row=0, column=0, sticky="nsew", rowspan=2)
+poems_submenu_frame.grid_remove()
+
+# Заголовок в подменю стихов
+poems_submenu_title_label = tk.Label(poems_submenu_frame, text=translations[language]["poems"], font=("Courier New", 40), bg=bg_color, fg=text_color)
+poems_submenu_title_label.pack(pady=50)
+
+# Фрейм для кнопок режимов стихов
+poems_submenu_buttons_frame = tk.Frame(poems_submenu_frame, bg=bg_color)
+poems_submenu_buttons_frame.pack(pady=30, padx=50)
+
+# Кнопка "Главная" (режим стихов)
+poems_main_mode_button_img = create_rounded_button_image(settings_button_width, button_height, button_radius, button_color, bg_color)
+poems_main_mode_button = tk.Button(poems_submenu_buttons_frame, image=poems_main_mode_button_img, text=translations[language]["tab_main"], 
+                                   compound="center", command=lambda: show_mode("main"),
+                                   fg=text_color, font=("Courier New", 24), borderwidth=0, bg=bg_color, activebackground=bg_color)
+poems_main_mode_button.image = poems_main_mode_button_img
+poems_main_mode_button.pack(pady=15, fill="x")
+
+# Кнопка "По строкам"
+poems_lines_mode_button_img = create_rounded_button_image(settings_button_width, button_height, button_radius, button_color, bg_color)
+poems_lines_mode_button = tk.Button(poems_submenu_buttons_frame, image=poems_lines_mode_button_img, text=translations[language]["tab_lines"], 
+                                     compound="center", command=lambda: show_mode("lines"),
+                                     fg=text_color, font=("Courier New", 24), borderwidth=0, bg=bg_color, activebackground=bg_color)
+poems_lines_mode_button.image = poems_lines_mode_button_img
+poems_lines_mode_button.pack(pady=15, fill="x")
+
+# Кнопка "По абзацам"
+poems_paragraphs_mode_button_img = create_rounded_button_image(settings_button_width, button_height, button_radius, button_color, bg_color)
+poems_paragraphs_mode_button = tk.Button(poems_submenu_buttons_frame, image=poems_paragraphs_mode_button_img, text=translations[language]["tab_paragraphs"], 
+                                          compound="center", command=lambda: show_mode("paragraphs"),
+                                          fg=text_color, font=("Courier New", 24), borderwidth=0, bg=bg_color, activebackground=bg_color)
+poems_paragraphs_mode_button.image = poems_paragraphs_mode_button_img
+poems_paragraphs_mode_button.pack(pady=15, fill="x")
+
+# Кнопка "Назад в меню" для подменю стихов
+poems_back_button_img = create_rounded_button_image(settings_button_width, button_height, button_radius, button_color, bg_color)
+poems_back_button = tk.Button(poems_submenu_buttons_frame, image=poems_back_button_img, text=translations[language]["back_to_menu"], 
+                              compound="center", command=show_main_menu,
+                              fg=text_color, font=("Courier New", 24), borderwidth=0, bg=bg_color, activebackground=bg_color)
+poems_back_button.image = poems_back_button_img
+poems_back_button.pack(pady=15, fill="x")
+
+# Интерфейс математического тренажёра
+math_frame = tk.Frame(root, bg=bg_color)
+math_frame.grid(row=0, column=0, sticky="nsew", rowspan=2)
+math_frame.grid_remove()
+
+# Кнопка "Назад в меню" для математического тренажёра
+math_back_button_img = create_rounded_button_image(150, 40, button_radius, button_color, bg_color)
+math_back_button = tk.Button(math_frame, image=math_back_button_img, text=translations[language]["back_to_menu"], 
+                            compound="center", command=show_main_menu,
+                            fg=text_color, font=("Courier New", 14), borderwidth=0, bg=bg_color, activebackground=bg_color)
+math_back_button.image = math_back_button_img
+math_back_button.grid(row=0, column=0, columnspan=2, padx=10, pady=10, sticky="nw")
+
+# Левая часть - информация о прогрессе
+math_left_frame = tk.Frame(math_frame, bg=bg_color)
+math_left_frame.grid(row=1, column=0, padx=20, pady=20, sticky="nsew")
+
+math_level_label = tk.Label(math_left_frame, text=translations[language]["math_level"].format(math_level), 
+                           font=("Courier New", 24), bg=bg_color, fg=text_color)
+math_level_label.pack(pady=20)
+
+math_points_label = tk.Label(math_left_frame, text=translations[language]["math_points"].format(math_points), 
+                            font=("Courier New", 24), bg=bg_color, fg=text_color)
+math_points_label.pack(pady=20)
+
+math_progress_label = tk.Label(math_left_frame, text=translations[language]["math_progress"].format(math_tasks_completed, math_tasks_per_level), 
+                              font=("Courier New", 20), bg=bg_color, fg=text_color)
+math_progress_label.pack(pady=20)
+
+# Выбор сложности
+math_difficulty_label = tk.Label(math_left_frame, text=translations[language]["math_difficulty"], 
+                                font=("Courier New", 18), bg=bg_color, fg=text_color)
+math_difficulty_label.pack(pady=10)
+
+math_difficulty_frame = tk.Frame(math_left_frame, bg=bg_color)
+math_difficulty_frame.pack(pady=10)
+
+math_easy_radio = tk.Radiobutton(math_difficulty_frame, text=translations[language]["math_easy"], 
+                                 variable=math_difficulty_var, value="Лёгкий", 
+                                 command=update_math_difficulty, font=("Courier New", 16), 
+                                 bg=bg_color, fg=text_color, selectcolor=bg_color)
+math_easy_radio.pack(anchor="w", pady=5)
+
+math_normal_radio = tk.Radiobutton(math_difficulty_frame, text=translations[language]["math_normal"], 
+                                   variable=math_difficulty_var, value="Нормальный", 
+                                   command=update_math_difficulty, font=("Courier New", 16), 
+                                   bg=bg_color, fg=text_color, selectcolor=bg_color)
+math_normal_radio.pack(anchor="w", pady=5)
+
+math_hard_radio = tk.Radiobutton(math_difficulty_frame, text=translations[language]["math_hard"], 
+                                 variable=math_difficulty_var, value="Сложный", 
+                                 command=update_math_difficulty, font=("Courier New", 16), 
+                                 bg=bg_color, fg=text_color, selectcolor=bg_color)
+math_hard_radio.pack(anchor="w", pady=5)
+
+# Правая часть - задание и ввод
+math_right_frame = tk.Frame(math_frame, bg=bg_color)
+math_right_frame.grid(row=1, column=1, padx=20, pady=20, sticky="nsew")
+
+math_task_label = tk.Label(math_right_frame, text=translations[language]["math_task"], 
+                          font=("Courier New", 32), bg=bg_color, fg=text_color)
+math_task_label.pack(pady=30)
+
+math_answer_entry = tk.Entry(math_right_frame, font=("Courier New", 32), width=15, justify="center")
+math_answer_entry.pack(pady=30)
+math_answer_entry.bind("<Return>", lambda e: check_math_answer())
+
+math_status_label = tk.Label(math_right_frame, text="", font=("Courier New", 20), bg=bg_color, fg=text_color)
+math_status_label.pack(pady=20)
+
+math_check_button_img = create_rounded_button_image(button_width, button_height, button_radius, button_color, bg_color)
+math_check_button = tk.Button(math_right_frame, image=math_check_button_img, text=translations[language]["math_check"], 
+                             compound="center", command=check_math_answer,
                              fg=text_color, font=("Courier New", 24), borderwidth=0, bg=bg_color, activebackground=bg_color)
-help_mode_button.image = help_mode_button_img
-help_mode_button.pack(pady=15, fill="x")
+math_check_button.image = math_check_button_img
+math_check_button.pack(pady=20)
+
+math_new_task_button_img = create_rounded_button_image(button_width, button_height, button_radius, button_color, bg_color)
+math_new_task_button = tk.Button(math_right_frame, image=math_new_task_button_img, text=translations[language]["math_new_task"], 
+                                compound="center", command=generate_new_math_task,
+                                fg=text_color, font=("Courier New", 24), borderwidth=0, bg=bg_color, activebackground=bg_color)
+math_new_task_button.image = math_new_task_button_img
+math_new_task_button.pack(pady=20)
+
+math_frame.grid_rowconfigure(1, weight=1)
+math_frame.grid_columnconfigure(0, weight=1)
+math_frame.grid_columnconfigure(1, weight=2)
 
 # Инициализация программы
 load_settings()
